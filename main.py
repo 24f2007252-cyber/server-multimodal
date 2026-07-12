@@ -31,7 +31,7 @@ def answer(req: ImageRequest):
         image = Image.open(io.BytesIO(img_bytes))
 
         prompt = f"""
-Answer the question from the image.
+Answer ONLY the following question from the image.
 
 Question:
 {req.question}
@@ -39,16 +39,21 @@ Question:
 Rules:
 - Return ONLY the answer.
 - No explanation.
-- If numeric, return only digits/decimal.
-- Never include units or currency.
+- If numeric, return only the number.
+- No currency symbols.
+- No units.
 """
 
         response = model.generate_content([prompt, image])
 
-        return {"answer": response.text.strip()}
+        ans = response.text.strip()
+
+        return {
+            "answer": ans
+        }
 
     except Exception as e:
-        return {"error": str(e)}
-    return {
-        "answer": response.text.strip()
-    }
+        # IMPORTANT: always return answer field
+        return {
+            "answer": str(e)
+        }
