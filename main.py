@@ -30,30 +30,29 @@ def answer(req: ImageRequest):
         img_bytes = base64.b64decode(req.image_base64)
         image = Image.open(io.BytesIO(img_bytes))
 
-        prompt = f"""
-Answer ONLY the following question from the image.
+        response = model.generate_content([
+            f"""
+Answer ONLY this question.
 
 Question:
 {req.question}
 
-Rules:
-- Return ONLY the answer.
-- No explanation.
-- If numeric, return only the number.
-- No currency symbols.
-- No units.
-"""
+Return ONLY the raw answer.
+""",
+            image
+        ])
 
-        response = model.generate_content([prompt, image])
+        answer = ""
 
-        ans = response.text.strip()
+        if hasattr(response, "text") and response.text:
+            answer = response.text.strip()
 
         return {
-            "answer": ans
+            "answer": answer
         }
 
-    except Exception as e:
-        # IMPORTANT: always return answer field
+    except Exception:
         return {
-            "answer": str(e)
+            "answer": ""
+        }
         }
