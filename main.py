@@ -26,12 +26,11 @@ class ImageRequest(BaseModel):
 
 @app.post("/answer-image")
 def answer(req: ImageRequest):
+    try:
+        img_bytes = base64.b64decode(req.image_base64)
+        image = Image.open(io.BytesIO(img_bytes))
 
-    img_bytes = base64.b64decode(req.image_base64)
-
-    image = Image.open(io.BytesIO(img_bytes))
-
-    prompt = f"""
+        prompt = f"""
 Answer the question from the image.
 
 Question:
@@ -44,8 +43,12 @@ Rules:
 - Never include units or currency.
 """
 
-    response = model.generate_content([prompt, image])
+        response = model.generate_content([prompt, image])
 
+        return {"answer": response.text.strip()}
+
+    except Exception as e:
+        return {"error": str(e)}
     return {
         "answer": response.text.strip()
     }
